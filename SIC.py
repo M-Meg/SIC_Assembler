@@ -150,31 +150,84 @@ def obj_code(lines, out_file):
 				out_file.write("{0: <27}".format(line[:-1]) + "\t" + obj + "\n")
 
 
+def check(lines):
+	labels = list()
+	for line in lines[1:]:
+		line = line.upper()
+		line_sections = line.split("	")
+
+		if line_sections[0] != "":
+			labels.append(line_sections[0]) 
+			# print(line_sections[0])
+
+	for line in lines[1:]:	
+		line = line.upper()
+		line_sections = line.split("	")
+		Sic = ["RESB", "RESW", "BYTE", "WORD", "END"]
+
+		try:
+			op = OP_CODE[line_sections[1]]
+		except KeyError:
+			if line_sections[1] in Sic :
+				pass
+			else:
+				return (1, line_sections[1])
+		
+		if line_sections[2][-3:-1] == ",X":
+			label = line_sections[2][:-3]
+		else:
+			label = line_sections[2][:-1]
+
+		if label.isalpha():
+			# print(line_sections[2][:-1])
+			if label in labels:
+				pass 
+			else:
+				return (2, label)
+
+	return (0, 0)
+
+
 
 def sic_assembler(name):
+
 	with open(name) as f:
 		lines = f.readlines()
-		with open(name+"pass1", "w") as fp1:
-			set_loc_counter(lines, fp1)
+		status = check(lines)
+		f.close()
+
+	if status[0] == 0:
+		with open(name) as f:
+			lines = f.readlines()
+			with open(name+"pass1", "w") as fp1:
+				set_loc_counter(lines, fp1)
+				fp1.close()
+			f.close()
+
+		with open(name+"pass1", "r") as fp1:
+			lines = fp1.readlines()
+			sym_table(lines, fp1)
 			fp1.close()
-		f.close()
-
-	with open(name+"pass1", "r") as fp1:
-		lines = fp1.readlines()
-		sym_table(lines, fp1)
-		fp1.close()
 
 
-	with open(name+"pass1") as f:
-		lines = f.readlines()
-		with open(name+"pass2", "w") as fp2:
-			obj_code(lines, fp2)
-			fp2.close()
-		f.close()
+		with open(name+"pass1") as f:
+			lines = f.readlines()
+			with open(name+"pass2", "w") as fp2:
+				obj_code(lines, fp2)
+				fp2.close()
+			f.close()
 
-	with open(name+"pass1", "a") as fp1:
-		sym_file(fp1)
-		fp1.close()
+		with open(name+"pass1", "a") as fp1:
+			sym_file(fp1)
+			fp1.close()
+
+	elif status[0] == 1 :
+		print(status[1], "is not a valid SIC instruction")
+
+	elif status[0] == 2:
+		print(status[1], "label is undefined")
+
+
 
 
 def main():
@@ -197,4 +250,4 @@ def main():
 	
 
 # main()
-sic_assembler("inSIC.txt")
+sic_assembler("SIC")
