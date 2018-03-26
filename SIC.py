@@ -5,6 +5,8 @@ OP_CODE ={"ADD":"18", "AND":"40", "COMP":"28", "DIV":"24", "J":"3C", "JEQ":"30",
 "LDA":"00", "LDCH":"50", "LDL":"08", "LDX":"04", "MUL":"20", "OR":"44", "RD":"D8", "RSUB":"4C", "STA":"0C", "STCH":"54",\
  "STL":"14", "STSW":"E8", "STX":"10", "SUB":"1C", "TD":"E0", "TIX":"2C", "WD":"DC"}
 
+SYMBOL_TABLE = {}
+
 def set_loc_counter(lines, out_file):
 
 	for line in lines:	
@@ -26,61 +28,153 @@ def set_loc_counter(lines, out_file):
 			return
 			
 		elif line_sections[1] == "RESW":
-			print(loc_add, "{0: <6}".format(line_sections[0]), "{0: <5}".format(line_sections[1]), "{0: <6}".format(line_sections[2][:-1]), "\t", "no obj. code")
+			print(loc_add, "{0: <6}".format(line_sections[0]), "{0: <5}".format(line_sections[1]), "{0: <6}".format(line_sections[2][:-1]))
 			loc_add = format(int(line_sections[2])*3 + int(loc_add, 16), '06x')
-			output = loc_add + "\t" + "{0: <6}".format(line_sections[0]) + "\t" + "{0: <5}".format(line_sections[1]) + "\t" + "{0: <6}".format(line_sections[2][:-1])+ "\n"
+			output = loc_add + "\t" + "{0: <6}".format(line_sections[0]) + "\t" + "{0: <5}".format(line_sections[1]) + "\t" + line_sections[2][:-1]+ "\n"
 			out_file.write(output)
 
 		elif line_sections[1] == "RESB":
-			print(loc_add, "{0: <6}".format(line_sections[0]), "{0: <5}".format(line_sections[1]), "{0: <6}".format(line_sections[2][:-1]), "\t", "no obj. code")
+			print(loc_add, "{0: <6}".format(line_sections[0]), "{0: <5}".format(line_sections[1]), "{0: <6}".format(line_sections[2][:-1]))
 			loc_add = format(int(line_sections[2]) + int(loc_add, 16), '06x')
-			output = loc_add + "\t" + "{0: <6}".format(line_sections[0]) + "\t" + "{0: <5}".format(line_sections[1]) + "\t" + "{0: <6}".format(line_sections[2][:-1])+ "\n"
+			output = loc_add + "\t" + "{0: <6}".format(line_sections[0]) + "\t" + "{0: <5}".format(line_sections[1]) + "\t" + line_sections[2][:-1]+ "\n"
 			out_file.write(output)
 
 		elif line_sections[1] == "BYTE":
 			if line_sections[2][0] == "X":
-				print(loc_add, "{0: <6}".format(line_sections[0]), "{0: <5}".format(line_sections[1]), "{0: <6}".format(line_sections[2][:-1]), "\t", line_sections[2][2:-2])
+				print(loc_add, "{0: <6}".format(line_sections[0]), "{0: <5}".format(line_sections[1]), "{0: <6}".format(line_sections[2][:-1]))
 				loc_add = format(int(math.ceil(len(line_sections[2][2:-2])/2)) + int(loc_add, 16), '06x')
-				output = loc_add + "\t" + "{0: <6}".format(line_sections[0]) + "\t" + "{0: <5}".format(line_sections[1]) + "\t" + "{0: <6}".format(line_sections[2][:-1])+ "\n"
+				output = loc_add + "\t" + "{0: <6}".format(line_sections[0]) + "\t" + "{0: <5}".format(line_sections[1]) + "\t" + line_sections[2][:-1]+ "\n"
 				out_file.write(output)
 
 			elif line_sections[2][0] == "C":
-				print(loc_add, "{0: <6}".format(line_sections[0]), "{0: <5}".format(line_sections[1]), "{0: <6}".format(line_sections[2][:-1]), "\t", ''.join(str(format(ord(c),'x')) for c in line_sections[2][2:-2]))
+				print(loc_add, "{0: <6}".format(line_sections[0]), "{0: <5}".format(line_sections[1]), "{0: <6}".format(line_sections[2][:-1]))
 				loc_add = format(int(len(line_sections[2][2:-2])) + int(loc_add, 16), '06x')
-				output = loc_add + "\t" + "{0: <6}".format(line_sections[0]) + "\t" + "{0: <5}".format(line_sections[1]) + "\t" + "{0: <6}".format(line_sections[2][:-1])+ "\n"
+				output = loc_add + "\t" + "{0: <6}".format(line_sections[0]) + "\t" + "{0: <5}".format(line_sections[1]) + "\t" + line_sections[2][:-1]+ "\n"
 				out_file.write(output)
 
 		elif line_sections[1] == "WORD":
-			print(loc_add, "{0: <6}".format(line_sections[0]), "{0: <5}".format(line_sections[1]), "{0: <6}".format(line_sections[2][:-1]), "\t", format(int(line_sections[2][:-1]), '06x'))
+			print(loc_add, "{0: <6}".format(line_sections[0]), "{0: <5}".format(line_sections[1]), "{0: <6}".format(line_sections[2][:-1]))
 			loc_add = format(int(loc_add, 16) + 3, '06x')
-			output = loc_add + "\t" + "{0: <6}".format(line_sections[0]) + "\t" + "{0: <5}".format(line_sections[1]) + "\n"
+			output = loc_add + "\t" + "{0: <6}".format(line_sections[0]) + "\t" + "{0: <5}".format(line_sections[1]) + "\t" + line_sections[2][:-1] + "\n"
 			out_file.write(output)
 
 		else:
 			print(loc_add, "{0: <6}".format(line_sections[0]), "{0: <5}".format(line_sections[1]), "{0: <6}".format(line_sections[2][:-1]))
 			loc_add = format(int(loc_add, 16) + 3, '06x')
-			output = loc_add + "\t" + "{0: <6}".format(line_sections[0]) + "\t" + "{0: <5}".format(line_sections[1]) + "\t" + "{0: <6}".format(line_sections[2][:-1])+ "\n"
+			output = loc_add + "\t" + "{0: <6}".format(line_sections[0]) + "\t" + "{0: <5}".format(line_sections[1]) + "\t" + line_sections[2][:-1]+ "\n"
 			out_file.write(output)
 
 
-def sym_table():
-	pass
+
+def sym_table(lines, out_file):
+	for line in lines[1:]:	
+		line = line.upper()
+		line_sections = line.split("	")
+
+		if line_sections[1] != "      ":
+			print("+++++++++++++++++++")
+			print("+", line_sections[1], "|", line_sections[0], "+")
+			SYMBOL_TABLE[line_sections[1].split()[0]] = line_sections[0]
+	print("+++++++++++++++++++")
 
 
-def obj_code(lines):
+
+def sym_file(out_file):
+	out_file.write("\n\n\n")
+	out_file.write("++++++++++++++++++\n")
+	out_file.write("+ SYMBOL TABLES  +\n")
+	for k in SYMBOL_TABLE:
+		out_file.write("++++++++++++++++++\n")
+		out_file.write("+ " + "{0: <6}".format(k) + "| " + SYMBOL_TABLE[k] + " +\n")
+	out_file.write("++++++++++++++++++\n")
+
+		
+
+
+
+def obj_code(lines, out_file):
 	for line in lines:	
 		line_sections = line.split("	")
+		# print(line_sections[2])
+
+		if line_sections[2] == "START":
+				Start_add = line_sections[0]
+				prog_name = line_sections[1]
+				# print(prog_name)
+				out_file.write(line)
+						
+		elif line_sections[2] == "END  ":
+			# print("END")
+			out_file.write(line)
+			
+		elif line_sections[2] == "RESW ":
+			obj = "no obj. code"
+			print(obj)
+			out_file.write("{0: <27}".format(line[:-1]) + "\t" + obj + "\n")
+
+		elif line_sections[2] == "RESB ":
+			obj = "no obj. code"
+			print(obj)
+			out_file.write("{0: <27}".format(line[:-1]) + "\t" + obj + "\n")
+
+		elif line_sections[2] == "BYTE ":
+			if line_sections[3][0] == "X":
+				obj = line_sections[3][2:-2]
+				print(obj)
+				out_file.write("{0: <27}".format(line[:-1]) + "\t" + obj + "\n")
+
+			elif line_sections[3][0] == "C":
+				obj =  ''.join(str(format(ord(c),'x')) for c in line_sections[3][2:-2])
+				print(obj)
+				out_file.write("{0: <27}".format(line[:-1]) + "\t" + obj + "\n")
+					
+		elif line_sections[2] == "WORD ":
+			obj = format(int(line_sections[3][:-1]), '06x')
+			print(obj)
+			out_file.write("{0: <27}".format(line[:-1]) + "\t" + obj + "\n")
+
+		else:
+			# print(line_sections[2].split()[0])
+			op = OP_CODE[line_sections[2].split()[0]]
+
+			if line_sections[3][-3:-1] == ",X":
+				sy = SYMBOL_TABLE[line_sections[3][:-3]]
+				x = format(int(sy, 16) + 32768, '04x')
+				obj = op + x
+				print(obj)
+				out_file.write("{0: <27}".format(line[:-1]) + "\t" + obj + "\n")
+			else:
+				sy = SYMBOL_TABLE[line_sections[3][:-1]]
+				obj = op + sy[2:]
+				print(obj)
+				out_file.write("{0: <27}".format(line[:-1]) + "\t" + obj + "\n")
+
 
 
 def sic_assembler(name):
 	with open(name) as f:
 		lines = f.readlines()
-		# line_num = len(lines)
 		with open(name+"pass1", "w") as fp1:
 			set_loc_counter(lines, fp1)
 			fp1.close()
-		
 		f.close()
+
+	with open(name+"pass1", "r") as fp1:
+		lines = fp1.readlines()
+		sym_table(lines, fp1)
+		fp1.close()
+
+
+	with open(name+"pass1") as f:
+		lines = f.readlines()
+		with open(name+"pass2", "w") as fp2:
+			obj_code(lines, fp2)
+			fp2.close()
+		f.close()
+
+	with open(name+"pass1", "a") as fp1:
+		sym_file(fp1)
+		fp1.close()
 
 
 def main():

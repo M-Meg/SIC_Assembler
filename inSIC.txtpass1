@@ -1,10 +1,27 @@
 000000	SUM   	START	000000
-00012c	COUNT 	RESW 	100   
-00012d	COUNT 	RESB 	1     
+00012c	COUNT 	RESW 	100
+00012d	COUNT 	RESB 	1
 00012f	      	BYTE 	X'F1A'
-000132	      	BYTE 	C'CVB'
+000132	ZERO  	BYTE 	C'CVB'
 000135	      	BYTE 	C'EOF'
-000138	      	WORD 
-00013b	      	LDA  	ZERO  
-00013e	LOOP  	LDX  	INDEX 
-00013e	      	END  	000000
+000138	ONE   	WORD 	123
+00013b	      	LDA  	ZERO
+00013e	LOOP  	LDX  	INDEX
+000141	INDEX 	LDA  	ONE,X
+000141	      	END  	000000
+
+
+
+++++++++++++++++++
++ SYMBOL TABLES  +
+++++++++++++++++++
++ COUNT | 00012D +
+++++++++++++++++++
++ ZERO  | 000132 +
+++++++++++++++++++
++ ONE   | 000138 +
+++++++++++++++++++
++ LOOP  | 00013E +
+++++++++++++++++++
++ INDEX | 000141 +
+++++++++++++++++++
