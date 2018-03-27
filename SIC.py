@@ -25,7 +25,8 @@ def set_loc_counter(lines, out_file):
 			print(loc_add, "{0: <6}".format(line_sections[0]), "{0: <5}".format(line_sections[1]), "{0: <6}".format(Start_add))
 			output = loc_add + "\t" + "{0: <6}".format(line_sections[0]) + "\t" + "{0: <5}".format(line_sections[1]) + "\t" + "{0: <6}".format(Start_add)+ "\n"
 			out_file.write(output)
-			return
+			prog_length = int(loc_add, 16) - int(Start_add, 16)
+			return prog_length
 			
 		elif line_sections[1] == "RESW":
 			print(loc_add, "{0: <6}".format(line_sections[0]), "{0: <5}".format(line_sections[1]), "{0: <6}".format(line_sections[2][:-1]))
@@ -88,11 +89,10 @@ def sym_file(out_file):
 		out_file.write("+ " + "{0: <6}".format(k) + "| " + SYMBOL_TABLE[k] + " +\n")
 	out_file.write("++++++++++++++++++\n")
 
-		
 
 
-
-def obj_code(lines, out_file):
+def obj_code(lines, out_file, prog_length):
+	header = ""
 	for line in lines:	
 		line_sections = line.split("	")
 		# print(line_sections[2])
@@ -101,36 +101,49 @@ def obj_code(lines, out_file):
 				Start_add = line_sections[0]
 				prog_name = line_sections[1]
 				# print(prog_name)
+				header = "\n\nH." + "{0: <6}".format(prog_name) + "." + "{0: <6}".format(Start_add) + "." + format(prog_length, '06x') + "\nT"
 				out_file.write(line)
 						
 		elif line_sections[2] == "END  ":
 			# print("END")
+			header += "\nE." + Start_add
 			out_file.write(line)
 			
 		elif line_sections[2] == "RESW ":
 			obj = "no obj. code"
 			print(obj)
+			if header[-1] == "\n" or header[-1] =="T":
+				pass
+			else:
+				header += "\n"
 			out_file.write("{0: <27}".format(line[:-1]) + "\t" + obj + "\n")
 
 		elif line_sections[2] == "RESB ":
 			obj = "no obj. code"
 			print(obj)
+			if header[-1] == "\n" or header[-1] =="T":
+				pass
+			else:
+				header += "\n"
 			out_file.write("{0: <27}".format(line[:-1]) + "\t" + obj + "\n")
 
 		elif line_sections[2] == "BYTE ":
 			if line_sections[3][0] == "X":
 				obj = line_sections[3][2:-2]
 				print(obj)
+				header +=  "." + obj
 				out_file.write("{0: <27}".format(line[:-1]) + "\t" + obj + "\n")
 
 			elif line_sections[3][0] == "C":
 				obj =  ''.join(str(format(ord(c),'x')) for c in line_sections[3][2:-2])
 				print(obj)
+				header +=  "." + obj
 				out_file.write("{0: <27}".format(line[:-1]) + "\t" + obj + "\n")
 					
 		elif line_sections[2] == "WORD ":
 			obj = format(int(line_sections[3][:-1]), '06x')
 			print(obj)
+			header +=  "." + obj
 			out_file.write("{0: <27}".format(line[:-1]) + "\t" + obj + "\n")
 
 		else:
@@ -142,12 +155,16 @@ def obj_code(lines, out_file):
 				x = format(int(sy, 16) + 32768, '04x')
 				obj = op + x
 				print(obj)
+				header +=  "." + obj
 				out_file.write("{0: <27}".format(line[:-1]) + "\t" + obj + "\n")
 			else:
 				sy = SYMBOL_TABLE[line_sections[3][:-1]]
 				obj = op + sy[2:]
 				print(obj)
+				header +=  "." + obj
 				out_file.write("{0: <27}".format(line[:-1]) + "\t" + obj + "\n")
+
+	out_file.write(header)
 
 
 def check(lines):
@@ -189,6 +206,7 @@ def check(lines):
 
 
 
+
 def sic_assembler(name):
 
 	with open(name) as f:
@@ -200,10 +218,10 @@ def sic_assembler(name):
 		with open(name) as f:
 			lines = f.readlines()
 			with open(name+"pass1", "w") as fp1:
-				set_loc_counter(lines, fp1)
+				prog_length = set_loc_counter(lines, fp1)
 				fp1.close()
 			f.close()
-
+		print(prog_length)
 		with open(name+"pass1", "r") as fp1:
 			lines = fp1.readlines()
 			sym_table(lines, fp1)
@@ -213,7 +231,7 @@ def sic_assembler(name):
 		with open(name+"pass1") as f:
 			lines = f.readlines()
 			with open(name+"pass2", "w") as fp2:
-				obj_code(lines, fp2)
+				obj_code(lines, fp2, prog_length)
 				fp2.close()
 			f.close()
 
@@ -221,12 +239,12 @@ def sic_assembler(name):
 			sym_file(fp1)
 			fp1.close()
 
+
 	elif status[0] == 1 :
 		print(status[1], "is not a valid SIC instruction")
 
 	elif status[0] == 2:
 		print(status[1], "label is undefined")
-
 
 
 
@@ -243,11 +261,10 @@ def main():
 		c = int(input("Please, Enter your choice: "))
 
 		if c == 1 :
-			c = input("Please, Enter Assembly code file name: ")
+			sic_assembler(input("Please, Enter Assembly code file name: "))
 			input()
 		elif c == 0:
 			break
 	
 
-# main()
-sic_assembler("SIC")
+main()
